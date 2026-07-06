@@ -283,8 +283,65 @@
         </div>
 
         </div>
+</div>
 
-    </div>
+</div>
+    <!-- MODAL CONFIRMACIÓN -->
+
+    <div id="modalConfirmacion" class="modal hidden">
+
+        <div class="modal-content" style="max-width:480px;">
+
+            <div class="modal-header">
+
+                <h3 id="tituloConfirmacion">
+                    Confirmar
+                </h3>
+
+                <span
+                    class="modal-close"
+                    onclick="cerrarConfirmacion()">
+
+                    ✕
+
+                </span>
+
+            </div>
+
+                <div
+                    id="mensajeConfirmacion"
+                    style="padding:20px;font-size:14px;line-height:1.6;">
+                </div>
+
+                <div
+                    style="
+                        display:flex;
+                        justify-content:flex-end;
+                        gap:10px;
+                        padding:15px 20px;
+                        border-top:1px solid #e5e7eb;">
+
+                    <button
+                        class="btn"
+                        onclick="cerrarConfirmacion()">
+
+                        Cancelar
+
+                    </button>
+
+                    <button
+                        id="btnConfirmarModal"
+                        class="btn btn-primary">
+
+                        Confirmar
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
 
 
     <!-- EXCEPCIÓN -->

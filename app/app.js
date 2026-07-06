@@ -1846,7 +1846,7 @@ async function consultarCupos()
                 "Pagador",
                 "cupoEmisor",
                 cupoEmisorComoDeudor,
-                estadoEmisorComoDeudor !== "Activo"
+                !(estadoEmisorComoDeudor === "Activo" || estadoEmisorComoDeudor === "Vencido"|| estadoEmisorComoDeudor === "Vinculado")
             )}
 
                 <div class="cupos-field-label">Cupo aprobado</div>
@@ -1909,21 +1909,21 @@ async function consultarCupos()
                 "Factoring",
                 "cupoDeudor",
                 cupoDeudorFactoring,
-                estadoDeudorComoEmisor !== "Activo"
+                !(estadoDeudorComoEmisor === "Activo" || estadoDeudorComoEmisor === "Vencido")
             )}
 
-            ${filaRadio(
+           ${filaRadio(
                 "Prefactoring",
                 "cupoDeudor",
                 cupoDeudorPrefactoring,
-                estadoDeudorComoEmisor !== "Activo"
+                !(estadoDeudorComoEmisor === "Activo" || estadoDeudorComoEmisor === "Vencido")
             )}
-
+            
             ${filaRadio(
                 "Anticipo",
                 "cupoDeudor",
                 cupoDeudorAnticipo,
-                estadoDeudorComoEmisor !== "Activo"
+                !(estadoDeudorComoEmisor === "Activo" || estadoDeudorComoEmisor === "Vencido")
             )}
 
                 <div class="cupos-field-label">Cupo aprobado</div>
@@ -2129,11 +2129,37 @@ async function guardarExcepcion()
 }
 async function guardarExtracupo(valor)
 {
+    if(valor)
+    {
+        mostrarConfirmacion(
+            "⚠ Confirmar Gestión de Extracupo",
+
+                `
+                ¿Está seguro de solicitar la <b>Gestión de Extracupo</b> para este negocio?<br><br>
+
+                Esta acción notificará automáticamente a las áreas y responsables involucrados en el proceso de extracupo.<br><br>
+
+                <b>¿Desea continuar?</b>
+                `,
+
+            async function()
+            {
+                await actualizarExtracupo(true);
+            }
+        );
+
+        return;
+    }
+
+    await actualizarExtracupo(false);
+}
+async function actualizarExtracupo(valor)
+{
     const resp = await ZOHO.CRM.API.updateRecord({
         Entity:"Potentials",
         APIData:{
             id:String(recordId),
-            Alerta_Extra_Cupo_Emisor: valor
+            Alerta_Extra_Cupo_Emisor:valor
         }
     });
 
@@ -2141,7 +2167,16 @@ async function guardarExtracupo(valor)
     {
         negocio.Alerta_Extra_Cupo_Emisor = valor;
 
-        revalidar();
+        document.getElementById("chkExtracupo").checked = valor;
+
+        await revalidar();
+    }
+    else
+    {
+        document.getElementById("chkExtracupo").checked =
+            !!negocio.Alerta_Extra_Cupo_Emisor;
+
+        mostrarError("No fue posible actualizar la Gestión de Extracupo.");
     }
 }
 function usarCupo(valor,tipo)
@@ -2266,5 +2301,52 @@ function formatearFecha(fecha)
     });
 }
 
+let accionConfirmada = null;
 
-// pendiente validar nuevo estados de cifin y camara y cupos que debe mostrar el como deudor el como emisor.
+function mostrarConfirmacion(titulo, mensaje, callback)
+{
+    document.getElementById("tituloConfirmacion").innerHTML = titulo;
+
+    document.getElementById("mensajeConfirmacion").innerHTML = mensaje;
+
+    accionConfirmada = callback;
+
+    document
+        .getElementById("modalConfirmacion")
+        .classList.remove("hidden");
+}
+
+function ocultarModalConfirmacion()
+{
+    document
+        .getElementById("modalConfirmacion")
+        .classList.add("hidden");
+}
+document.getElementById("btnConfirmarModal").onclick = async function()
+{
+    ocultarModalConfirmacion();
+
+    try
+    {
+        if(accionConfirmada)
+        {
+            await accionConfirmada();
+        }
+    }
+    finally
+    {
+        accionConfirmada = null;
+    }
+};
+function cerrarConfirmacion()
+{
+    ocultarModalConfirmacion();
+
+    document.getElementById("chkExtracupo").checked =
+        !!negocio.Alerta_Extra_Cupo_Emisor;
+
+    accionConfirmada = null;
+}
+
+// pendiente bloquear seleccion de cupos cuando uno de las entidades como emisor o deudor este  descartada o demas. solo estado vencido e activo se debe permitir seleccionar, tambien el boton 
+//solicitar extracupo  debe pedir un tipo de estas seguro o algo asi porque es muy rapido. ojala una confirmación. 
