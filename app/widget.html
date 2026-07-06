@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Revalidación de Crédito</title>
+
+    <link rel="stylesheet" href="styles.css">
+
+    <script src="https://live.zwidgets.com/js-sdk/1.2/ZohoEmbededAppSDK.min.js"></script>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- HEADER -->
+    <div class="header">
+        <h2>Validación de Crédito</h2>
+        <p class="subtitle">
+            Validación previa al paso a Crédito
+        </p>
+    </div>
+
+    <div class="card">
+
+    <div class="card-title">
+        Información General
+    </div>
+
+    <div class="infoGeneral">
+       
+        <strong>Emisor:</strong>
+        <span id="nombreEmisor"></span> |
+
+        <strong>Deudor:</strong>
+        <span id="nombreDeudor"></span> |
+        
+        <strong>Número Negocio:</strong>
+        <span id="numeroNegocio"></span> 
+
+    </div>
+
+    <div class="infoGeneral">
+
+        <strong>Tipo:</strong>
+        <span id="tipoProducto"></span>        |
+
+        <strong>Objetivo:</strong>
+        <span id="objetivoNegocio"></span>     |
+        
+        <strong>Importe:</strong>
+        <span id="importeNegocio"></span>
+
+    </div>
+
+    <!-- INFORMACIÓN ACTUAL DEL CUPO -->
+    <div id="cardCupos" class="card">
+
+        <div class="card-title">
+            Información Cupos
+        </div>
+
+        <table class="tabla-validacion">
+
+            <thead>
+                <tr>
+                    <th>Cupos</th>
+                    <th>Emisor</th>
+                    <th>Deudor</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                <tr>
+                    <td>Cupo Aprobado</td>
+                    <td id="cupoFactoring">-</td>
+                    <td id="cupoDeudor">-</td>
+                </tr>
+
+                <tr>
+                    <td>Cupo Utilizado</td>
+                    <td id="usadoEmisor">-</td>
+                    <td id="usadoDeudor">-</td>
+                </tr>
+
+                <tr>
+                    <td>Disponible Antes del Negocio</td>
+                    <td id="disponibleAntesEmisor">-</td>
+                    <td id="disponibleAntesDeudor">-</td>
+                </tr>
+
+                <tr>
+                    <td>Disponible Después del Negocio</td>
+                    <td id="disponibleEmisorNegocio">-</td>
+                    <td id="disponibleDeudorNegocio">-</td>
+                </tr>
+                
+                <tr>
+                    <td>Gestión Extracupo</td>
+
+                    <td colspan="2">
+                        <label style="display:flex;align-items:center;gap:8px;">
+                            <input
+                                type="checkbox"
+                                id="chkExtracupo"
+                                onchange="guardarExtracupo(this.checked)">
+
+                            Solicitar Gestión de Extracupo
+                        </label>
+                    </td>
+                </tr>
+
+            </tbody>
+
+        </table>
+        <div style="margin-top:10px;text-align:right;">
+            <button
+                id="btnConsultarCupos"
+                class="btnMini">
+                    Consultar y editar cupos
+            </button>
+        </div>    
+    </div>
+
+    <!-- VALIDACIONES -->
+    <div class="card">
+
+        <div class="card-title">
+           Validaciones Comerciales y de Riesgo
+        </div>
+
+        <div id="estadoGeneral" class="estado-general">
+            Validando...
+        </div>
+
+        <table class="tabla-validacion">
+
+            <thead>
+                <tr>
+                    <th>Revisión</th>
+                    <th>Emisor</th>
+                    <th>Deudor</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                <tr>
+                    <td>Estado</td>
+                    <td id="estadoEmisor">-</td>
+                    <td id="estadoDeudor">-</td>
+                </tr>
+
+                <tr>
+                    <td>CIFIN</td>
+                    <td id="cifinEmisor">-</td>
+                    <td id="cifinDeudor">-</td>
+                </tr>
+
+                <tr>
+                    <td>Cámara</td>
+                    <td id="ccEmisor">-</td>
+                    <td id="ccDeudor">-</td>
+                </tr>
+
+            </tbody>
+
+        </table>
+
+        <div id="listaPendientes" class="lista-pendientes">
+        </div>
+
+    </div>
+    
+    <div class="card">
+
+    <div class="card-title">
+        Validaciones de Cumplimiento
+    </div>
+
+    <table class="tabla-validacion">
+
+    <thead>
+        <tr>
+            <th style="width:25%">Entidad</th>
+            <th style="width:15%">Estado</th>
+            <th>Resultado de la Validación</th>
+        </tr>
+    </thead>
+
+        <tbody id="tbodyCumplimiento">
+
+        </tbody>
+
+    </table>
+
+    </div>
+    <!-- MODAL DETALLE VALIDACIÓN -->
+
+    <div id="modalCumplimiento" class="modal hidden">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <h3>Detalle Validación</h3>
+
+                <span
+                    class="modal-close"
+                    onclick="cerrarModalCumplimiento()">
+                    ✕
+                </span>
+
+            </div>
+
+            <div id="modalCumplimientoBody">
+
+            </div>
+
+        </div>
+
+    </div>
+    <!-- MODAL CUPOS -->
+
+    <div id="modalCupos" class="modal hidden">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <h3>Cupos de las Entidades</h3>
+
+                <span
+                    class="modal-close"
+                    onclick="cerrarModalCupos()">
+
+                    ✕
+
+                </span>
+
+            </div>
+
+            <div id="modalCuposBody">
+
+            </div>
+
+        </div>
+
+    </div>
+    <!-- MODAL OBSERVACIONES -->
+
+<div id="modalObservacion" class="modal hidden">
+
+    <div class="modal-content" style="max-width:650px;">
+
+        <div class="modal-header">
+
+            <h3 id="tituloObservacion">
+                Observaciones
+            </h3>
+
+            <span
+                class="modal-close"
+                onclick="cerrarModalObservacion()">
+
+                ✕
+
+            </span>
+
+        </div>
+
+        <div
+            id="contenidoObservacion"
+            style="
+                white-space:pre-wrap;
+                line-height:1.5;
+                font-size:13px;
+                max-height:350px;
+                overflow:auto;
+            ">
+
+        </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- EXCEPCIÓN -->
+    <div id="seccionExcepcion" class="card hidden">
+
+        <div class="card-title">
+            Gestión de Excepción
+        </div>
+
+        <p class="warning-text">
+            Se requiere soporte de excepción para continuar.
+        </p>
+
+        <label class="input-label">
+            Link Gestión Excepción
+        </label>
+
+        <input
+            type="url"
+            id="linkExcepcion"
+            placeholder="https://"
+        >
+
+        <label class="input-label obligatorio">
+            Comentarios Cupo *
+        </label>
+
+        <textarea
+            id="comentariosCupo"
+            placeholder="Describa la justificación de la excepción..."
+        ></textarea>
+
+    </div>
+
+    <!-- BOTONES -->
+    <div class="actions">
+
+        <button
+            id="btnRevalidar"
+            class="btn btn-primary"
+        >
+            Revalidar
+        </button>
+
+        <button
+            id="btnContinuar"
+            class="btn btn-success"
+        >
+            Continuar a Crédito
+        </button>
+
+    </div>
+
+    <!-- LOADER -->
+    <div id="loader" class="loader hidden">
+        Validando información...
+    </div>
+
+    <!-- MENSAJES -->
+    <div id="messageContainer"></div>
+
+</div>
+
+<script src="app.js"></script>
+
+</body>
+</html>
