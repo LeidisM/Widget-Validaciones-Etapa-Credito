@@ -1,3 +1,6 @@
 .vscode/
 node_modules/
 .env
+cert.pem
+key.pem
+ZET-debug.log
