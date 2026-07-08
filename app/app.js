@@ -268,20 +268,33 @@ async function buscarPorNit(modulo, nit)
 }
 function pintarEmisor()
 {
-
     const estadoEmisor = emisor.Estado_de_Vinculaci_n || "";
+    const objetivo = negocio.Objetivo_Negocio || "";
 
     const emisorValido =
         estadoEmisor === "Activo" ||
         estadoEmisor === "Vinculado" ||
         estadoEmisor === "En Proceso de Vinculación";
 
-    document.getElementById("estadoEmisor").innerHTML =
-        emisorValido
-        ? "✅ " + estadoEmisor
-        : "❌ " + estadoEmisor;
+    if(emisorValido)
+    {
+        document.getElementById("estadoEmisor").innerHTML =
+            "✅ " + estadoEmisor;
+    }
+    else if(objetivo === "Compensación")
+    {
+        document.getElementById("estadoEmisor").innerHTML =
+            `ℹ ${estadoEmisor}<br>
+            <span class="estado-info">
+                No aplica para este objetivo
+            </span>`;
+    }
+    else
+    {
+        document.getElementById("estadoEmisor").innerHTML =
+            "❌ " + estadoEmisor;
+    }
 }
-
 function pintarDeudor()
 {
 
@@ -637,7 +650,7 @@ if(controlEmisor)
 
     if(
         objetivo === "Giro" ||
-        objetivo === "Compensación con Giro"
+        objetivo === "Compensacion con Giro"
     )
     {
         if(!emisorValido)
@@ -961,16 +974,6 @@ async function continuarCredito()
             Stage: "Crédito",
             Fecha_hora_Cr_dito: fechaZoho
         };
-/*
-        if(requiereExcepcion)
-        {
-            dataUpdate.Link_Gestion_Excepcion =
-                linkExcepcion;
-
-            dataUpdate.Comentarios_Cupo_V2 =
-                comentarios;
-        }
-*/
         // ==========================
         // ACTUALIZAR NEGOCIO
         // ==========================
@@ -1651,143 +1654,6 @@ await ZOHO.CRM.API.insertRecord({
 
 }
 
-/*
-async function crearNotaCredito()
-{
-    const titulo =`Validación Crédito - ${negocio.Deal_Name}`;
-
-    const ahora = new Date();
-
-    let contenido = `
-    =========================================
-    VALIDACIÓN DE CRÉDITO
-    =========================================
-    Fecha: ${ahora.toLocaleString("es-CO")}
-    -----------------------------------------
-    DATOS GENERALES
-    -----------------------------------------
-    Negocio : ${negocio.Deal_Name || "-"}
-
-    Tipo Negocio : ${negocio.Tipo_de_Negocio || "-"}
-
-    Objetivo : ${negocio.Objetivo_Negocio || "-"}
-
-    Importe: ${formatearMoneda(negocio.Amount|| "-")}
-
-    Emisor : ${emisor.Account_Name || "-"}
-    Estado Emisor : ${emisor.Estado_de_Vinculaci_n || "-"}
-
-    Deudor : ${deudor.Name || "-"}
-    Estado Deudor : ${deudor.Estado_Actual_Deudor || "-"}
-    -----------------------------------------
-    CUPOS
-    -----------------------------------------
-    Cupo Aprobado Emisor :
-    ${formatearMoneda(negocio.Cupo_Aprobado_Prueba)}
-
-    Cupo Utilizado Emisor :
-    ${formatearMoneda(negocio.Cupo_Factoring_Prueba)}
-
-    Disponible Emisor :
-    ${formatearMoneda(negocio.Prueba_disponible)}
-
-    Cupo Aprobado Deudor :
-    ${formatearMoneda(negocio.Cupo_Deudor_Aprobado)}
-
-    Cupo Utilizado Deudor :
-    ${formatearMoneda(negocio.Disponible_Eeudor)}
-
-    Disponible Deudor :
-    ${formatearMoneda(negocio.Disponible_Deudor_Negocio)}
-    -----------------------------------------
-    CONTROL CIFIN / CÁMARA
-    -----------------------------------------
-    CIFIN Emisor :
-    ${controlEmisor ? controlEmisor.R_CIFIN : "Sin Control"}
-
-    Cámara Emisor :
-    ${controlEmisor ? controlEmisor.R_C_mara_Comercio : "Sin Control"}
-
-    CIFIN Deudor :
-    ${controlDeudor ? controlDeudor.R_CIFIN : "Sin Control"}
-
-    Cámara Deudor :
-    ${controlDeudor ? controlDeudor.R_C_mara_Comercio : "Sin Control"}
-    -----------------------------------------
-    EXCEPCIÓN
-    -----------------------------------------
-    Extracupo :
-    ${negocio.Alerta_Extra_Cupo_Emisor ? "SI" : "NO"}
-
-    Link Gestión Excepción:
-    ${negocio.Link_Gestion_Excepcion || "-"}
-
-    Comentarios Cupo:
-    ${negocio.Comentarios_Cupo_V2 || "-"}
-    -----------------------------------------
-    VALIDACIONES DE CUMPLIMIENTO
-    -----------------------------------------
-    `;
-
-        for(const r of validacionesCumplimiento)
-        {
-            let entidad = "-";
-
-            if(r.Emisor)
-            {
-                entidad = r.Emisor.name;
-            }
-            else if(r.Deudor)
-            {
-                entidad = r.Deudor.name;
-            }
-            else
-            {
-                entidad = r.Raz_n_social_prospecto || "-";
-            }
-
-            contenido += `
-
-    =========================================
-    ${entidad}
-    =========================================
-    Estado:
-    ${r.Estado || "-"}
-
-    Contaduría:
-    ${r.Contralor_a || "-"}
-    ${r.Observaciones_contraloria || ""}
-
-    Procuraduría:
-    ${r.Procuraduria || "-"}
-    ${r.Observaciones_procuraduria || ""}
-
-    Listas Vinculantes:
-    ${r.Lista_OFAC || "-"}
-    ${r.Observaciones_Lista_OFAC || ""}
-
-    Procesos Judiciales:
-    ${r.Procesos_judiciales || "-"}
-    ${r.Observaciones_procesos_judiciales || ""}
-
-    Observaciones Generales:
-    ${r.Observaciones_Generales || "-"}
-
-    `;
-        }
-
-        await ZOHO.CRM.API.insertRecord({
-            Entity: "Notes",
-            APIData:
-            {
-                Note_Title: titulo,
-                Note_Content: contenido,
-                Parent_Id: recordId,
-                se_module: "Potentials"
-            }
-        });
-}
-*/
 async function consultarCupos()
 {
     const body = document.getElementById("modalCuposBody");

@@ -754,4 +754,6 @@ input[type="url"]:focus{
 .estado-info{
     color:#64748b;
     font-weight:600;
+    font-size:11px;
+    font-style:italic;
 }
