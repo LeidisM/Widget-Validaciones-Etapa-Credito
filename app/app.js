@@ -637,6 +637,28 @@ if(controlEmisor)
     }
 
     // ==========================
+    // VALIDACIONES DE CUMPLIMIENTO
+    // ==========================
+
+    for(const validacion of validacionesCumplimiento)
+    {
+        if(validacion.Estado === "En revisión")
+        {
+            bloqueoValidacion = true;
+
+            const entidad =
+                validacion.Emisor?.name ||
+                validacion.Deudor?.name ||
+                validacion.Raz_n_social_prospecto ||
+                "Entidad";
+
+            pendientes.push(
+                `La validación de cumplimiento de ${entidad} se encuentra en revisión.`
+            );
+        }
+    }    
+
+    // ==========================
     // OBJETIVO
     // ==========================
 
@@ -720,7 +742,7 @@ function renderResultado()
         if(bloqueoValidacion)
         {
             estado.innerHTML =
-                "<span style='color:#dc2626;font-weight:bold'>⛔ No es posible continuar</span>";
+                "<span style='color:#dc2626;font-weight:bold'>⛔ No es posible continuar. Existen validaciones de cumplimiento en revisión.</span>";
         }
         else
         {
@@ -821,11 +843,29 @@ validacionesCumplimiento = resp.data || [];
 function pintarValidacionesCumplimiento()
 {
    
+const tbody =
+    document.getElementById("tbodyCumplimiento");
 
-    const tbody =
-        document.getElementById("tbodyCumplimiento");
+tbody.innerHTML = "";
 
-    tbody.innerHTML = "";
+    // Si no existen validaciones asociadas
+    if(validacionesCumplimiento.length === 0)
+    {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="3" style="
+                    text-align:center;
+                    padding:20px;
+                    color:#64748b;
+                    font-style:italic;">
+                    Actualmente no existen validaciones de cumplimiento asociadas a este negocio.<br><br>
+                    Si el objetivo del negocio es <b>Compensación</b>, esta situación es esperada, ya que por regla de negocio no se generan validaciones de cumplimiento.<br><br>
+                    Para los demás objetivos, las validaciones se crearán automáticamente una vez el negocio alcance la etapa correspondiente del proceso (después de la etapa de Factoring).
+                </td>
+            </tr>
+        `;
+        return;
+    }
 
     for(const [i,r] of validacionesCumplimiento.entries())
     {
@@ -923,7 +963,7 @@ async function continuarCredito()
         if(bloqueoValidacion)
         {
             mostrarError(
-                "No es posible continuar. Existen controles CIFIN/Cámara pendientes de crear."
+                "No es posible continuar mientras existan validaciones de cumplimiento en revisión."
             );
             return;
         }
